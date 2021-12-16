@@ -11,3 +11,4 @@ terraform/.gitignore
 - файлы, в названии которых содержится .tfstate.
 - все файлы в каталоге и подкаталоге .terraform
 new line
+new line PyCharm
