@@ -12,5 +12,6 @@ terraform/.gitignore
 - все файлы в каталоге и подкаталоге .terraform
 
 New line PyCharm
-
+1
 test merge
+test conflict
