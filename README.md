@@ -15,3 +15,4 @@ New line PyCharm
 1+2
 test merge
 test conflict
+test rebase
