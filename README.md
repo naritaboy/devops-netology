@@ -15,7 +15,7 @@ vagrant-parallels (2.2.4, global)
 `  v.cpus = [cpu]`  
 `end`
 7. \+
-8. Длина журнала history описывается переменными:  
+8. Длина журнала **history** описывается переменными:  
 line 937 HISTFILESIZE - максимальное количество строк  
 line 955 HISTSIZE - количество команд  
 ignoreboth - значение опции HISTCONTROL, включает в себя:  
