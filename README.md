@@ -1,4 +1,118 @@
-##Домашнее задание к занятию "3.3. Операционные системы, лекция 1"
+# Домашнее задание
+## Домашнее задание к занятию "3.4. Операционные системы, лекция 2"
+### Вопрос 1
+Создал unit-файл для node_exporter, учел возможность добавления опций к запускаемому процессу через внешний файл и поместил unit в автозагрузку
+
+`sudo systemctl cat node_exporter`
+```
+# /etc/systemd/system/node_exporter.service
+[Unit]
+Description=Prometheus exporter for hardware and OS metrics exposed by *NIX kernels
+Documentation=https://prometheus.io/docs/guides/node-exporter/
+After=network.target
+
+[Service]
+ExecStart=/opt/node_exporter/bin/node_exporter $EXT_OPTS
+EnvironmentFile=-/etc/opt/node_exporter/options
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+`cat /etc/opt/node_exporter/options`
+```
+EXT_OPTS="--collector.tcpstat"
+``` 
+
+`sudo systemctl status node_exporter`
+```
+● node_exporter.service - Prometheus exporter for hardware and OS metrics exposed by *NIX kernels
+     Loaded: loaded (/etc/systemd/system/node_exporter.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2022-02-06 08:30:16 PST; 1min 50s ago
+       Docs: https://prometheus.io/docs/guides/node-exporter/
+   Main PID: 713 (node_exporter)
+      Tasks: 3 (limit: 1055)
+     Memory: 13.6M
+     CGroup: /system.slice/node_exporter.service
+             └─713 /opt/node_exporter/bin/node_exporter --collector.tcpstat
+```
+### Вопрос 2
+По умолчанию включены все необходимые метрики для мониторинга процессора, памяти, диска и сети.  
+Можно включить сборщик tcpstat (—collector.tcpstat)
+
+`curl -s http://localhost:9100/metrics | grep tcp`
+```
+node_scrape_collector_duration_seconds{collector="tcpstat"} 0.000354582
+node_scrape_collector_success{collector="tcpstat"} 1
+# HELP node_tcp_connection_states Number of connection states.
+# TYPE node_tcp_connection_states gauge
+node_tcp_connection_states{state="established"} 3
+node_tcp_connection_states{state="listen"} 6
+node_tcp_connection_states{state="rx_queued_bytes"} 0
+node_tcp_connection_states{state="tx_queued_bytes"} 0
+```
+
+### Вопрос 3
+Установил netdata и ознакомился с метриками
+![netdata-screenshot](./media/3_4-os/netdata1.png)
+
+### Вопрос 4
+В выводе dmesg есть сообщение об обнаружении виртуализации
+
+`dmesg -T | grep virtual`
+```
+[Sat Feb  5 07:21:35 2022] systemd[1]: Detected virtualization parallels.
+```
+
+### Вопрос 5
+Максимальное количество файловых дескрипторов, которые может открыть процесс
+
+`sysctl -a | grep fs.nr_open`
+```
+fs.nr_open = 1048576
+```
+
+Другой лимит – **ulimit -n** (the maximum number of open file descriptors)
+
+`ulimit -a | grep open`
+```
+open files                      (-n) 1024
+```
+
+### Вопрос 6
+`ps a`
+```
+    PID TTY      STAT   TIME COMMAND
+      1 pts/0    S+     0:00 sleep 1h
+      2 pts/1    S      0:00 -bash
+     24 pts/1    R+     0:00 ps a
+```
+
+### Вопрос 7
+Это форк-бомба
+
+`dmesg -T | tail -1`
+```
+[Sat Feb  5 11:45:36 2022] cgroup: fork rejected by pids controller in /user.slice/user-1000.slice/session-22.scope
+```
+
+cgroup - механизм ядра Linux, который изолирует и ограничивает использование ресурсов группе процессов.
+
+https://www.kernel.org/doc/Documentation/cgroup-v1/pids.txt  
+Process Number Controller  
+The process number controller is used to allow a cgroup hierarchy to stop any new tasks from being fork()'d or clone()'d after a certain limit is reached.  
+Since it is trivial to hit the task limit without hitting any kmemcg limits in place, PIDs are a fundamental resource. As such, PID exhaustion must be preventable in the scope of a cgroup hierarchy by allowing resource limiting of the number of tasks in a cgroup.
+
+`ulimit -a | grep process`
+```
+max user processes              (-u) 3421
+```
+`ulimit -u `
+
+---
+
+## Домашнее задание к занятию "3.3. Операционные системы, лекция 1"
 
 1. chdir()
 2. /usr/share/misc/magic.mgc  
