@@ -1,4 +1,371 @@
 # Домашнее задание
+## Домашнее задание к занятию "3.5. Файловые системы"
+### Вопрос 2
+Не могут.  
+Жесткие ссылки на один файл обращаются к одному индексному дескриптору, в котором содержатся метаданные, в том числе права доступа и владелец файла.
+
+### Пункты 4-19
+Все пункты выполнены успешно. Листинг убрал в спойлер.
+
+<details>
+<summary>Листинг манипуляций с дисками</summary>
+
+```
+root@vagrant:~# ls -l /dev/sd*
+brw-rw---- 1 root disk 8,  0 Feb  9 17:03 /dev/sda
+brw-rw---- 1 root disk 8,  1 Feb  9 17:03 /dev/sda1
+brw-rw---- 1 root disk 8,  2 Feb  9 17:03 /dev/sda2
+brw-rw---- 1 root disk 8,  3 Feb  9 17:03 /dev/sda3
+brw-rw---- 1 root disk 8, 16 Feb  9 17:03 /dev/sdb
+brw-rw---- 1 root disk 8, 32 Feb  9 17:03 /dev/sdc
+```
+```
+root@vagrant:~# fdisk -l /dev/sd{b,c}
+Disk /dev/sdb: 2.51 GiB, 2684354560 bytes, 5242880 sectors
+Disk model: VBOX HARDDISK
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+
+Disk /dev/sdc: 2.51 GiB, 2684354560 bytes, 5242880 sectors
+Disk model: VBOX HARDDISK
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+```
+```
+root@vagrant:~# fdisk /dev/sdb
+
+Welcome to fdisk (util-linux 2.34).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table.
+Created a new DOS disklabel with disk identifier 0x8fae6fac.
+
+Command (m for help): m
+
+Help:
+
+  DOS (MBR)
+   a   toggle a bootable flag
+   b   edit nested BSD disklabel
+   c   toggle the dos compatibility flag
+
+  Generic
+   d   delete a partition
+   F   list free unpartitioned space
+   l   list known partition types
+   n   add a new partition
+   p   print the partition table
+   t   change a partition type
+   v   verify the partition table
+   i   print information about a partition
+
+  Misc
+   m   print this menu
+   u   change display/entry units
+   x   extra functionality (experts only)
+
+  Script
+   I   load disk layout from sfdisk script file
+   O   dump disk layout to sfdisk script file
+
+  Save & Exit
+   w   write table to disk and exit
+   q   quit without saving changes
+
+  Create a new label
+   g   create a new empty GPT partition table
+   G   create a new empty SGI (IRIX) partition table
+   o   create a new empty DOS partition table
+   s   create a new empty Sun partition table
+
+Command (m for help): n
+Partition type
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended (container for logical partitions)
+Select (default p):
+
+Using default response p.
+Partition number (1-4, default 1):
+First sector (2048-5242879, default 2048):
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-5242879, default 5242879): +2G
+
+Created a new partition 1 of type 'Linux' and of size 2 GiB.
+
+Command (m for help): n
+Partition type
+   p   primary (1 primary, 0 extended, 3 free)
+   e   extended (container for logical partitions)
+Select (default p):
+
+Using default response p.
+Partition number (2-4, default 2):
+First sector (4196352-5242879, default 4196352):
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (4196352-5242879, default 5242879):
+
+Created a new partition 2 of type 'Linux' and of size 511 MiB.
+
+Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+```
+```
+root@vagrant:~# fdisk -l /dev/sdb
+Disk /dev/sdb: 2.51 GiB, 2684354560 bytes, 5242880 sectors
+Disk model: VBOX HARDDISK
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x8fae6fac
+
+Device     Boot   Start     End Sectors  Size Id Type
+/dev/sdb1          2048 4196351 4194304    2G 83 Linux
+/dev/sdb2       4196352 5242879 1046528  511M 83 Linux
+```
+```
+root@vagrant:~# sfdisk -d /dev/sdb | sfdisk /dev/sdc
+Checking that no-one is using this disk right now ... OK
+
+Disk /dev/sdc: 2.51 GiB, 2684354560 bytes, 5242880 sectors
+Disk model: VBOX HARDDISK
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Script header accepted.
+>>> Created a new DOS disklabel with disk identifier 0x8fae6fac.
+/dev/sdc1: Created a new partition 1 of type 'Linux' and of size 2 GiB.
+/dev/sdc2: Created a new partition 2 of type 'Linux' and of size 511 MiB.
+/dev/sdc3: Done.
+
+New situation:
+Disklabel type: dos
+Disk identifier: 0x8fae6fac
+
+Device     Boot   Start     End Sectors  Size Id Type
+/dev/sdc1          2048 4196351 4194304    2G 83 Linux
+/dev/sdc2       4196352 5242879 1046528  511M 83 Linux
+
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+```
+```
+root@vagrant:~# mdadm --create --verbose /dev/md0 --level=1 --raid-devices=2 /dev/sdb1 /dev/sdc1
+mdadm: Note: this array has metadata at the start and
+    may not be suitable as a boot device.  If you plan to
+    store '/boot' on this device please ensure that
+    your boot-loader understands md/v1.x metadata, or use
+    --metadata=0.90
+mdadm: size set to 2094080K
+Continue creating array? y
+mdadm: Defaulting to version 1.2 metadata
+mdadm: array /dev/md0 started.
+```
+```
+root@vagrant:~# mdadm --create --verbose /dev/md1 --level=0 --raid-devices=2 /dev/sdb2 /dev/sdc2
+mdadm: chunk size defaults to 512K
+mdadm: Defaulting to version 1.2 metadata
+mdadm: array /dev/md1 started.
+```
+```
+root@vagrant:~# cat /proc/mdstat
+Personalities : [linear] [multipath] [raid0] [raid1] [raid6] [raid5] [raid4] [raid10]
+md1 : active raid0 sdc2[1] sdb2[0]
+      1042432 blocks super 1.2 512k chunks
+
+md0 : active raid1 sdc1[1] sdb1[0]
+      2094080 blocks super 1.2 [2/2] [UU]
+
+unused devices: <none>
+```
+```
+root@vagrant:~# pvcreate /dev/md0
+  Physical volume "/dev/md0" successfully created.
+```
+```
+root@vagrant:~# pvcreate /dev/md1
+  Physical volume "/dev/md1" successfully created.
+```
+```
+root@vagrant:~# pvdisplay /dev/md*
+  --- Physical volume ---
+  PV Name               /dev/md0
+  VG Name               vg1
+  PV Size               <2.00 GiB / not usable 0
+  Allocatable           yes
+  PE Size               4.00 MiB
+  Total PE              511
+  Free PE               511
+  Allocated PE          0
+  PV UUID               XhdUfU-dtn1-U67c-TvHQ-EUJd-d7c1-4datCp
+
+  --- Physical volume ---
+  PV Name               /dev/md1
+  VG Name               vg1
+  PV Size               1018.00 MiB / not usable 2.00 MiB
+  Allocatable           yes
+  PE Size               4.00 MiB
+  Total PE              254
+  Free PE               254
+  Allocated PE          0
+  PV UUID               kjYoXX-GQM1-4Te6-Z0kB-etF3-RbuT-s4X59m
+```
+```
+root@vagrant:~# vgcreate vg0 /dev/md0 /dev/md1
+  Volume group "vg0" successfully created
+```
+```
+root@vagrant:~# vgdisplay vg0
+  --- Volume group ---
+  VG Name               vg0
+  System ID
+  Format                lvm2
+  Metadata Areas        2
+  Metadata Sequence No  1
+  VG Access             read/write
+  VG Status             resizable
+  MAX LV                0
+  Cur LV                0
+  Open LV               0
+  Max PV                0
+  Cur PV                2
+  Act PV                2
+  VG Size               <2.99 GiB
+  PE Size               4.00 MiB
+  Total PE              765
+  Alloc PE / Size       0 / 0
+  Free  PE / Size       765 / <2.99 GiB
+  VG UUID               tSz7TO-zggj-PK8j-q8bV-3jfi-uNwf-e6fJhm
+```
+```
+root@vagrant:~# lvcreate -L 100M vg0 /dev/md1
+  Logical volume "lvol0" created.
+```
+```
+root@vagrant:~# lvdisplay /dev/vg0/lvol0
+  --- Logical volume ---
+  LV Path                /dev/vg0/lvol0
+  LV Name                lvol0
+  VG Name                vg0
+  LV UUID                FJJB7H-NVFf-M9XB-2Idc-bokJ-NQDN-S7s4EB
+  LV Write Access        read/write
+  LV Creation host, time vagrant, 2022-02-09 17:53:24 +0000
+  LV Status              available
+  # open                 1
+  LV Size                100.00 MiB
+  Current LE             25
+  Segments               1
+  Allocation             inherit
+  Read ahead sectors     auto
+  - currently set to     4096
+  Block device           253:1
+```
+```
+root@vagrant:~# mkfs.ext4 /dev/vg0/lvol0
+mke2fs 1.45.5 (07-Jan-2020)
+Creating filesystem with 25600 4k blocks and 25600 inodes
+
+Allocating group tables: done
+Writing inode tables: done
+Creating journal (1024 blocks): done
+Writing superblocks and filesystem accounting information: done
+```
+```
+root@vagrant:~# mkdir /tmp/test
+root@vagrant:~# mount /dev/vg0/lvol0 /tmp/test
+```
+```
+root@vagrant:~# wget https://mirror.yandex.ru/ubuntu/ls-lR.gz -O /tmp/test/test.gz
+--2022-02-09 18:05:22--  https://mirror.yandex.ru/ubuntu/ls-lR.gz
+Resolving mirror.yandex.ru (mirror.yandex.ru)... 213.180.204.183, 2a02:6b8::183
+Connecting to mirror.yandex.ru (mirror.yandex.ru)|213.180.204.183|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 22289246 (21M) [application/octet-stream]
+Saving to: ‘/tmp/test/test.gz’
+
+/tmp/test/test.gz             100%[=================================================>]  21.26M  1.77MB/s    in 13s
+
+2022-02-09 18:05:36 (1.60 MB/s) - ‘/tmp/test/test.gz’ saved [22289246/22289246]
+```
+```
+root@vagrant:~# ls -lh /tmp/test/test.gz
+-rw-r--r-- 1 root root 22M Feb  9 16:17 /tmp/test/test.gz
+```
+```
+root@vagrant:~# lsblk
+NAME                      MAJ:MIN RM  SIZE RO TYPE  MOUNTPOINT
+loop0                       7:0    0 55.4M  1 loop  /snap/core18/2128
+loop1                       7:1    0 70.3M  1 loop  /snap/lxd/21029
+loop2                       7:2    0 32.3M  1 loop  /snap/snapd/12704
+loop3                       7:3    0 55.5M  1 loop  /snap/core18/2284
+loop4                       7:4    0 43.4M  1 loop  /snap/snapd/14549
+loop5                       7:5    0 61.9M  1 loop  /snap/core20/1328
+loop6                       7:6    0 67.2M  1 loop  /snap/lxd/21835
+sda                         8:0    0   64G  0 disk
+├─sda1                      8:1    0    1M  0 part
+├─sda2                      8:2    0    1G  0 part  /boot
+└─sda3                      8:3    0   63G  0 part
+  └─ubuntu--vg-ubuntu--lv 253:0    0 31.5G  0 lvm   /
+sdb                         8:16   0  2.5G  0 disk
+├─sdb1                      8:17   0    2G  0 part
+│ └─md0                     9:0    0    2G  0 raid1
+└─sdb2                      8:18   0  511M  0 part
+  └─md1                     9:1    0 1018M  0 raid0
+    └─vg0-lvol0           253:1    0  100M  0 lvm   /tmp/test
+sdc                         8:32   0  2.5G  0 disk
+├─sdc1                      8:33   0    2G  0 part
+│ └─md0                     9:0    0    2G  0 raid1
+└─sdc2                      8:34   0  511M  0 part
+  └─md1                     9:1    0 1018M  0 raid0
+    └─vg0-lvol0           253:1    0  100M  0 lvm   /tmp/test
+```
+```
+root@vagrant:~# gzip -t /tmp/test/test.gz
+root@vagrant:~# echo $?
+0
+```
+```
+root@vagrant:~# pvmove /dev/md1 /dev/md0
+  /dev/md1: Moved: 32.00%
+  /dev/md1: Moved: 100.00%
+```
+```
+root@vagrant:~# mdadm --fail /dev/md0 /dev/sdb1
+mdadm: set /dev/sdb1 faulty in /dev/md0
+```
+```
+root@vagrant:~# dmesg -T | tail -2
+[Wed Feb  9 18:19:14 2022] md/raid1:md0: Disk failure on sdb1, disabling device.
+                           md/raid1:md0: Operation continuing on 1 devices.
+```
+```
+root@vagrant:~# cat /proc/mdstat
+Personalities : [linear] [multipath] [raid0] [raid1] [raid6] [raid5] [raid4] [raid10]
+md1 : active raid0 sdc2[1] sdb2[0]
+      1042432 blocks super 1.2 512k chunks
+
+md0 : active raid1 sdc1[1] sdb1[0](F)
+      2094080 blocks super 1.2 [2/1] [_U]
+
+unused devices: <none>
+```
+```
+root@vagrant:~# gzip -t /tmp/test/test.gz
+root@vagrant:~# echo $?
+0
+```
+</details>
+
+---
+
 ## Домашнее задание к занятию "3.4. Операционные системы, лекция 2"
 ### Вопрос 1
 Создал unit-файл для node_exporter, учел возможность добавления опций к запускаемому процессу через внешний файл и поместил unit в автозагрузку
